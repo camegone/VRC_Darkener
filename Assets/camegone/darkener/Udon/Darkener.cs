@@ -6,24 +6,43 @@ using VRC.Udon;
 
 using UnityEngine.UI;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements.Experimental;
 
 namespace camegone.Darkener
 {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class Darkener : UdonSharpBehaviour
     {
-        public float _brightness = 1.0f;
-        public Color _tint = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+        [FieldChangeCallback(nameof(Brightness))] [SerializeField] private float _brightness = 1.0f;
+        public float Brightness
+        {
+            get { return _brightness; }
+            set { _brightness = value; UpdateColor(); }
+        }
+        [FieldChangeCallback(nameof(Tint))] [SerializeField] private Color _tint = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+        public Color Tint
+        {
+            get { return _tint; }
+            set { _tint = value; UpdateColor(); }
+        }
         [SerializeField] private Slider _bright;
         [SerializeField] private Slider _red;
         [SerializeField] private Slider _green;
         [SerializeField] private Slider _blue;
+        [SerializeField] private Toggle _cameraFxToggle;
 
         [SerializeField] private MeshRenderer _darkener;
 
         //[SerializeField] private GlobalKeyword _keyword;
 
-        private Color white = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+        private readonly Color white = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+
+        private MaterialPropertyBlock _propBlock = null;
+        private MaterialPropertyBlock PropBlock
+        {
+            // create new property block if reference first time
+            get { return _propBlock ?? (_propBlock = new MaterialPropertyBlock());}
+        }
 
         void Start()
         {
@@ -38,7 +57,13 @@ namespace camegone.Darkener
 
         public void UpdateColor() {
             UpdateRenderer();
-            _darkener.material.SetColor("_UdonDarkenerColor", _tint * VecBright(_brightness));
+
+            // use property block to optimize
+            PropBlock.SetColor("_UdonDarkenerColor", _tint * VecBright(_brightness));
+            if (_cameraFxToggle)
+                PropBlock.SetFloat("_IsShownInNonUserCamera", _cameraFxToggle.isOn ? 1.0f : 0.0f);
+            _darkener.SetPropertyBlock(PropBlock);
+            // _darkener.material.SetColor("_UdonDarkenerColor", _tint * VecBright(_brightness)); <- old method
         }
 
         Color VecBright(float b)
@@ -54,7 +79,7 @@ namespace camegone.Darkener
                 _darkener.enabled = true;
         }
 
-        float GetSliderVal(Slider slider) 
+        float GetSliderVal(Slider slider)
         {
             return slider.value;
         }
@@ -80,6 +105,11 @@ namespace camegone.Darkener
         public void OnBlueChanged()
         {
             _tint.b = GetSliderVal(_blue);
+            UpdateColor();
+        }
+
+        public void OnCameraFxToggled()
+        {
             UpdateColor();
         }
 

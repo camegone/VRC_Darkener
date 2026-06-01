@@ -8,7 +8,7 @@
         SubShader
     {
         Tags {"Queue" = "Transparent+10000"}
-        // multiplicative blend (Src * Zero) + (Dst *SrcColor)
+        // multiplicative blend (Src * Zero) + (Dst * SrcColor)
         BlendOp Add
         Blend Zero SrcColor
         // No culling or depth
@@ -43,17 +43,18 @@
             float _VRChatFaceMirrorMode;
             // end vrchat shader globals
 
+            float _IsShownInNonUserCamera;
+
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 // o.uv = v.uv;
 
-                #ifndef _ISSHOWNINNONUSERCAMERA_ON
                 // set 0.0 to vertex position to make to be transparent
-                if (_VRChatCameraMode != 0)
+                if (_IsShownInNonUserCamera == 0 && _VRChatCameraMode != 0)
                     o.vertex = float4(0.0, 0.0, 0.0, 0.0);
-                #endif
+
                 // always exclude in the mirrors
                 if( _VRChatMirrorMode != 0 || _VRChatFaceMirrorMode != 0)
                     o.vertex = float4(0.0, 0.0, 0.0, 0.0);

@@ -1,8 +1,9 @@
-﻿
-using UdonSharp;
+﻿using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
+// v to use VRCCameraSettings v
+using VRC.SDK3.Rendering;
 
 namespace camegone.Darkener{
 
@@ -10,6 +11,12 @@ namespace camegone.Darkener{
     public class DarkenerFollowPlayerPosition : UdonSharpBehaviour
     {
         [SerializeField] private GameObject _objectBeMoved = null;
+        [SerializeField] private bool _isFollowRotation = true;
+        public bool IsFollowRotation
+        {
+            get => _isFollowRotation;
+            set => _isFollowRotation = value;
+        }
         /*
         void Start()
         {
@@ -19,11 +26,16 @@ namespace camegone.Darkener{
 
         void Update()
         {
-            var lPlayer = Networking.LocalPlayer;
-            if (lPlayer == null)
+            var cam = VRCCameraSettings.ScreenCamera;
+            if (cam == null)
                 return;
-            
-            _objectBeMoved.transform.position = lPlayer.GetPosition();
+            // move object
+            _objectBeMoved.transform.position = cam.Position;
+            if (IsFollowRotation)
+            {
+                // rotate object
+                _objectBeMoved.transform.rotation = cam.Rotation;
+            }
         }
     }
 }

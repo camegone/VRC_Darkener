@@ -9,6 +9,7 @@ using UnityEngine.Rendering;
 
 namespace camegone.Darkener
 {
+    [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class Darkener : UdonSharpBehaviour
     {
         public float _brightness = 1.0f;
